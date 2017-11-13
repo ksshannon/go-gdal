@@ -85,6 +85,7 @@ func (band *RasterBand) IO(
 		dataPtr = unsafe.Pointer(&data[0])
 	case []float64:
 		dataType = Float64
+		dataPtr = unsafe.Pointer(&data[0])
 	default:
 		return fmt.Errorf("Error: buffer is not a valid data type (must be a valid numeric slice)")
 	}
