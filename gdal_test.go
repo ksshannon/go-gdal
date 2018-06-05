@@ -123,10 +123,10 @@ func TestRasterSize(t *testing.T) {
 	x := ds.RasterXSize()
 	y := ds.RasterYSize()
 	if x != 400 {
-		t.Errorf("invalid x size: %f", x)
+		t.Errorf("invalid x size: %d", x)
 	}
 	if y != 200 {
-		t.Errorf("invalid y size: %f", y)
+		t.Errorf("invalid y size: %d", y)
 	}
 }
 
@@ -141,7 +141,7 @@ func TestDataType(t *testing.T) {
 	}
 	dt := b.RasterDataType()
 	if dt != Byte {
-		t.Errorf("invalid data type: %d", dt.Name())
+		t.Errorf("invalid data type: %s", dt.Name())
 	}
 }
 
