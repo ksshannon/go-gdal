@@ -55,7 +55,7 @@ func TestSpatialFilters(t *testing.T) {
 		t.Errorf("spatial filter not nil")
 	}
 	// Create a spatial filter that has no features
-	geom, err := CreateFromWKT("POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))", lyr.SpatialRef())
+	geom, err := CreateFromWKT("POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))", *lyr.SpatialRef())
 	if err != nil {
 		t.Fatal("could not create filter geometry")
 	}

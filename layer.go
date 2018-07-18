@@ -81,9 +81,12 @@ func (layer *Layer) SetNextByIndex(index int) error {
 }
 
 // Fetch a feature by its index
-func (layer *Layer) Feature(index int) Feature {
+func (layer *Layer) Feature(index int) *Feature {
 	feature := C.OGR_L_GetFeature(layer.cval, C.GIntBig(index))
-	return Feature{feature}
+	if feature == nil {
+		return nil
+	}
+	return &Feature{feature}
 }
 
 // Rewrite the provided feature
@@ -102,15 +105,21 @@ func (layer *Layer) DeleteFeature(index int) error {
 }
 
 // Fetch the schema information for this layer
-func (layer *Layer) Definition() FeatureDefinition {
+func (layer *Layer) Definition() *FeatureDefinition {
 	defn := C.OGR_L_GetLayerDefn(layer.cval)
-	return FeatureDefinition{defn}
+	if defn == nil {
+		return nil
+	}
+	return &FeatureDefinition{defn}
 }
 
 // Fetch the spatial reference system for this layer
-func (layer *Layer) SpatialRef() SpatialReference {
+func (layer *Layer) SpatialRef() *SpatialReference {
 	sr := C.OGR_L_GetSpatialRef(layer.cval)
-	return SpatialReference{sr}
+	if sr == nil {
+		return nil
+	}
+	return &SpatialReference{sr}
 }
 
 // Fetch the feature count for this layer
@@ -134,7 +143,7 @@ func (layer *Layer) TestCapability(capability string) bool {
 }
 
 // Create a new field on a layer
-func (layer *Layer) CreateField(fd FieldDefinition, approxOK bool) error {
+func (layer *Layer) CreateField(fd *FieldDefinition, approxOK bool) error {
 	return C.OGR_L_CreateField(layer.cval, fd.cval, BoolToCInt(approxOK)).Err()
 }
 
