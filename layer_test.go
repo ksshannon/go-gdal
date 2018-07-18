@@ -59,7 +59,7 @@ func TestSpatialFilters(t *testing.T) {
 	if err != nil {
 		t.Fatal("could not create filter geometry")
 	}
-	lyr.SetSpatialFilter(&geom)
+	lyr.SetSpatialFilter(geom)
 	lyr.ResetReading()
 	if lyr.SpatialFilter() == nil {
 		t.Error("spatial filter not set")
