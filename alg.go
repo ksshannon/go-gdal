@@ -17,7 +17,7 @@ import (
 
 // Compute optimal PCT for RGB image
 func ComputeMedianCutPCT(
-	red, green, blue RasterBand,
+	red, green, blue *RasterBand,
 	colors int,
 	ct ColorTable,
 	progress ProgressFunc,
@@ -42,7 +42,7 @@ func ComputeMedianCutPCT(
 
 // 24bit to 8bit conversion with dithering
 func DitherRGB2PCT(
-	red, green, blue, target RasterBand,
+	red, green, blue, target *RasterBand,
 	ct ColorTable,
 	progress ProgressFunc,
 	data interface{},
@@ -64,14 +64,14 @@ func DitherRGB2PCT(
 }
 
 // Compute checksum for image region
-func (rb RasterBand) Checksum(xOff, yOff, xSize, ySize int) int {
+func (rb *RasterBand) Checksum(xOff, yOff, xSize, ySize int) int {
 	sum := C.GDALChecksumImage(rb.cval, C.int(xOff), C.int(yOff), C.int(xSize), C.int(ySize))
 	return int(sum)
 }
 
 // Compute the proximity of all pixels in the image to a set of pixels in the source image
-func (src RasterBand) ComputeProximity(
-	dest RasterBand,
+func (src *RasterBand) ComputeProximity(
+	dest *RasterBand,
 	options []string,
 	progress ProgressFunc,
 	data interface{},
@@ -98,8 +98,8 @@ func (src RasterBand) ComputeProximity(
 }
 
 // Fill selected raster regions by interpolation from the edges
-func (src RasterBand) FillNoData(
-	mask RasterBand,
+func (src *RasterBand) FillNoData(
+	mask *RasterBand,
 	distance float64,
 	iterations int,
 	options []string,
@@ -131,9 +131,9 @@ func (src RasterBand) FillNoData(
 }
 
 // Create polygon coverage from raster data using an integer buffer
-func (src RasterBand) Polygonize(
-	mask RasterBand,
-	layer Layer,
+func (src *RasterBand) Polygonize(
+	mask *RasterBand,
+	layer *Layer,
 	fieldIndex int,
 	options []string,
 	progress ProgressFunc,
@@ -163,9 +163,9 @@ func (src RasterBand) Polygonize(
 }
 
 // Create polygon coverage from raster data using a floating point buffer
-func (src RasterBand) FPolygonize(
-	mask RasterBand,
-	layer Layer,
+func (src *RasterBand) FPolygonize(
+	mask *RasterBand,
+	layer *Layer,
 	fieldIndex int,
 	options []string,
 	progress ProgressFunc,
@@ -195,8 +195,8 @@ func (src RasterBand) FPolygonize(
 }
 
 // Removes small raster polygons
-func (src RasterBand) SieveFilter(
-	mask, dest RasterBand,
+func (src *RasterBand) SieveFilter(
+	mask, dest *RasterBand,
 	threshold, connectedness int,
 	options []string,
 	progress ProgressFunc,
