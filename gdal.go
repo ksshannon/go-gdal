@@ -233,24 +233,6 @@ func GetColorInterpretationByName(name string) ColorInterp {
 	return ColorInterp(C.GDALGetColorInterpretationByName(cName))
 }
 
-// Types of color interpretations for a GDALColorTable.
-type PaletteInterp int
-
-const (
-	// Grayscale (in GDALColorEntry.c1)
-	PI_Gray = PaletteInterp(C.GPI_Gray)
-	// Red, Green, Blue and Alpha in (in c1, c2, c3 and c4)
-	PI_RGB = PaletteInterp(C.GPI_RGB)
-	// Cyan, Magenta, Yellow and Black (in c1, c2, c3 and c4)
-	PI_CMYK = PaletteInterp(C.GPI_CMYK)
-	// Hue, Lightness and Saturation (in c1, c2, and c3)
-	PI_HLS = PaletteInterp(C.GPI_HLS)
-)
-
-func (paletteInterp PaletteInterp) Name() string {
-	return C.GoString(C.GDALGetPaletteInterpretationName(C.GDALPaletteInterp(paletteInterp)))
-}
-
 // "well known" metadata items.
 const (
 	MD_AREA_OR_POINT = string(C.GDALMD_AREA_OR_POINT)
@@ -278,20 +260,12 @@ type Driver struct {
 	cval C.GDALDriverH
 }
 
-type ColorTable struct {
-	cval C.GDALColorTableH
-}
-
 type RasterAttributeTable struct {
 	cval C.GDALRasterAttributeTableH
 }
 
 type AsyncReader struct {
 	cval C.GDALAsyncReaderH
-}
-
-type ColorEntry struct {
-	cval *C.GDALColorEntry
 }
 
 /* -------------------------------------------------------------------- */
