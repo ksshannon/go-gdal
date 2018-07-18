@@ -197,77 +197,80 @@ type Field struct {
 }
 
 // Create a new field definition
-func CreateFieldDefinition(name string, fieldType FieldType) FieldDefinition {
+func CreateFieldDefinition(name string, fieldType FieldType) *FieldDefinition {
 	cName := C.CString(name)
 	defer C.free(unsafe.Pointer(cName))
 	fieldDef := C.OGR_Fld_Create(cName, C.OGRFieldType(fieldType))
-	return FieldDefinition{fieldDef}
+	if fieldDef == nil {
+		return nil
+	}
+	return &FieldDefinition{fieldDef}
 }
 
 // Destroy the field definition
-func (fd FieldDefinition) Destroy() {
+func (fd *FieldDefinition) Destroy() {
 	C.OGR_Fld_Destroy(fd.cval)
 }
 
 // Fetch the name of the field
-func (fd FieldDefinition) Name() string {
+func (fd *FieldDefinition) Name() string {
 	name := C.OGR_Fld_GetNameRef(fd.cval)
 	return C.GoString(name)
 }
 
 // Set the name of the field
-func (fd FieldDefinition) SetName(name string) {
+func (fd *FieldDefinition) SetName(name string) {
 	cName := C.CString(name)
 	defer C.free(unsafe.Pointer(cName))
 	C.OGR_Fld_SetName(fd.cval, cName)
 }
 
 // Fetch the type of this field
-func (fd FieldDefinition) Type() FieldType {
+func (fd *FieldDefinition) Type() FieldType {
 	fType := C.OGR_Fld_GetType(fd.cval)
 	return FieldType(fType)
 }
 
 // Set the type of this field
-func (fd FieldDefinition) SetType(fType FieldType) {
+func (fd *FieldDefinition) SetType(fType FieldType) {
 	C.OGR_Fld_SetType(fd.cval, C.OGRFieldType(fType))
 }
 
 // Fetch the justification for this field
-func (fd FieldDefinition) Justification() Justification {
+func (fd *FieldDefinition) Justification() Justification {
 	justify := C.OGR_Fld_GetJustify(fd.cval)
 	return Justification(justify)
 }
 
 // Set the justification for this field
-func (fd FieldDefinition) SetJustification(justify Justification) {
+func (fd *FieldDefinition) SetJustification(justify Justification) {
 	C.OGR_Fld_SetJustify(fd.cval, C.OGRJustification(justify))
 }
 
 // Fetch the formatting width for this field
-func (fd FieldDefinition) Width() int {
+func (fd *FieldDefinition) Width() int {
 	width := C.OGR_Fld_GetWidth(fd.cval)
 	return int(width)
 }
 
 // Set the formatting width for this field
-func (fd FieldDefinition) SetWidth(width int) {
+func (fd *FieldDefinition) SetWidth(width int) {
 	C.OGR_Fld_SetWidth(fd.cval, C.int(width))
 }
 
 // Fetch the precision for this field
-func (fd FieldDefinition) Precision() int {
+func (fd *FieldDefinition) Precision() int {
 	precision := C.OGR_Fld_GetPrecision(fd.cval)
 	return int(precision)
 }
 
 // Set the precision for this field
-func (fd FieldDefinition) SetPrecision(precision int) {
+func (fd *FieldDefinition) SetPrecision(precision int) {
 	C.OGR_Fld_SetPrecision(fd.cval, C.int(precision))
 }
 
 // Set defining parameters of field in a single call
-func (fd FieldDefinition) Set(
+func (fd *FieldDefinition) Set(
 	name string,
 	fType FieldType,
 	width, precision int,
@@ -287,13 +290,13 @@ func (fd FieldDefinition) Set(
 }
 
 // Fetch whether this field should be ignored when fetching features
-func (fd FieldDefinition) IsIgnored() bool {
+func (fd *FieldDefinition) IsIgnored() bool {
 	ignore := C.OGR_Fld_IsIgnored(fd.cval)
 	return ignore != 0
 }
 
 // Set whether this field should be ignored when fetching features
-func (fd FieldDefinition) SetIgnored(ignore bool) {
+func (fd *FieldDefinition) SetIgnored(ignore bool) {
 	C.OGR_Fld_SetIgnored(fd.cval, BoolToCInt(ignore))
 }
 
@@ -345,9 +348,12 @@ func (fd *FeatureDefinition) FieldCount() int {
 }
 
 // Fetch the definition of the indicated field
-func (fd *FeatureDefinition) FieldDefinition(index int) FieldDefinition {
+func (fd *FeatureDefinition) FieldDefinition(index int) *FieldDefinition {
 	fieldDefn := C.OGR_FD_GetFieldDefn(fd.cval, C.int(index))
-	return FieldDefinition{fieldDefn}
+	if fieldDefn == nil {
+		return nil
+	}
+	return &FieldDefinition{fieldDefn}
 }
 
 // Fetch the index of the named field
@@ -359,7 +365,7 @@ func (fd *FeatureDefinition) FieldIndex(name string) int {
 }
 
 // Add a new field definition to this feature definition
-func (fd *FeatureDefinition) AddFieldDefinition(fieldDefn FieldDefinition) {
+func (fd *FeatureDefinition) AddFieldDefinition(fieldDefn *FieldDefinition) {
 	C.OGR_FD_AddFieldDefn(fd.cval, fieldDefn.cval)
 }
 
