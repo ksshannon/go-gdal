@@ -30,6 +30,7 @@ var (
 	ErrOGRUnsupportedSRS          = errors.New("unsupported SRS")
 	ErrOGRInvalidHandle           = errors.New("invalid handle")
 	ErrOGRNonExistingFeature      = errors.New("non-existing feature")
+	EOL                           = errors.New("end of features")
 )
 
 type Envelope struct {
@@ -311,43 +312,46 @@ type FeatureDefinition struct {
 }
 
 // Create a new feature definition object
-func CreateFeatureDefinition(name string) FeatureDefinition {
+func CreateFeatureDefinition(name string) *FeatureDefinition {
 	cName := C.CString(name)
 	defer C.free(unsafe.Pointer(cName))
 	fd := C.OGR_FD_Create(cName)
-	return FeatureDefinition{fd}
+	if fd == nil {
+		return nil
+	}
+	return &FeatureDefinition{fd}
 }
 
 // Destroy a feature definition object
-func (fd FeatureDefinition) Destroy() {
+func (fd *FeatureDefinition) Destroy() {
 	C.OGR_FD_Destroy(fd.cval)
 }
 
 // Drop a reference, and delete object if no references remain
-func (fd FeatureDefinition) Release() {
+func (fd *FeatureDefinition) Release() {
 	C.OGR_FD_Release(fd.cval)
 }
 
 // Fetch the name of this feature definition
-func (fd FeatureDefinition) Name() string {
+func (fd *FeatureDefinition) Name() string {
 	name := C.OGR_FD_GetName(fd.cval)
 	return C.GoString(name)
 }
 
 // Fetch the number of fields in the feature definition
-func (fd FeatureDefinition) FieldCount() int {
+func (fd *FeatureDefinition) FieldCount() int {
 	count := C.OGR_FD_GetFieldCount(fd.cval)
 	return int(count)
 }
 
 // Fetch the definition of the indicated field
-func (fd FeatureDefinition) FieldDefinition(index int) FieldDefinition {
+func (fd *FeatureDefinition) FieldDefinition(index int) FieldDefinition {
 	fieldDefn := C.OGR_FD_GetFieldDefn(fd.cval, C.int(index))
 	return FieldDefinition{fieldDefn}
 }
 
 // Fetch the index of the named field
-func (fd FeatureDefinition) FieldIndex(name string) int {
+func (fd *FeatureDefinition) FieldIndex(name string) int {
 	cName := C.CString(name)
 	defer C.free(unsafe.Pointer(cName))
 	index := C.OGR_FD_GetFieldIndex(fd.cval, cName)
@@ -355,62 +359,62 @@ func (fd FeatureDefinition) FieldIndex(name string) int {
 }
 
 // Add a new field definition to this feature definition
-func (fd FeatureDefinition) AddFieldDefinition(fieldDefn FieldDefinition) {
+func (fd *FeatureDefinition) AddFieldDefinition(fieldDefn FieldDefinition) {
 	C.OGR_FD_AddFieldDefn(fd.cval, fieldDefn.cval)
 }
 
 // Delete a field definition from this feature definition
-func (fd FeatureDefinition) DeleteFieldDefinition(index int) error {
+func (fd *FeatureDefinition) DeleteFieldDefinition(index int) error {
 	return C.OGR_FD_DeleteFieldDefn(fd.cval, C.int(index)).Err()
 }
 
 // Fetch the geometry base type of this feature definition
-func (fd FeatureDefinition) GeometryType() GeometryType {
+func (fd *FeatureDefinition) GeometryType() GeometryType {
 	gt := C.OGR_FD_GetGeomType(fd.cval)
 	return GeometryType(gt)
 }
 
 // Set the geometry base type for this feature definition
-func (fd FeatureDefinition) SetGeometryType(geomType GeometryType) {
+func (fd *FeatureDefinition) SetGeometryType(geomType GeometryType) {
 	C.OGR_FD_SetGeomType(fd.cval, C.OGRwkbGeometryType(geomType))
 }
 
 // Fetch if the geometry can be ignored when fetching features
-func (fd FeatureDefinition) IsGeometryIgnored() bool {
+func (fd *FeatureDefinition) IsGeometryIgnored() bool {
 	isIgnored := C.OGR_FD_IsGeometryIgnored(fd.cval)
 	return isIgnored != 0
 }
 
 // Set whether the geometry can be ignored when fetching features
-func (fd FeatureDefinition) SetGeometryIgnored(val bool) {
+func (fd *FeatureDefinition) SetGeometryIgnored(val bool) {
 	C.OGR_FD_SetGeometryIgnored(fd.cval, BoolToCInt(val))
 }
 
 // Fetch if the style can be ignored when fetching features
-func (fd FeatureDefinition) IsStyleIgnored() bool {
+func (fd *FeatureDefinition) IsStyleIgnored() bool {
 	isIgnored := C.OGR_FD_IsStyleIgnored(fd.cval)
 	return isIgnored != 0
 }
 
 // Set whether the style can be ignored when fetching features
-func (fd FeatureDefinition) SetStyleIgnored(val bool) {
+func (fd *FeatureDefinition) SetStyleIgnored(val bool) {
 	C.OGR_FD_SetStyleIgnored(fd.cval, BoolToCInt(val))
 }
 
 // Increment the reference count by one
-func (fd FeatureDefinition) Reference() int {
+func (fd *FeatureDefinition) Reference() int {
 	count := C.OGR_FD_Reference(fd.cval)
 	return int(count)
 }
 
 // Decrement the reference count by one
-func (fd FeatureDefinition) Dereference() int {
+func (fd *FeatureDefinition) Dereference() int {
 	count := C.OGR_FD_Dereference(fd.cval)
 	return int(count)
 }
 
 // Fetch the current reference count
-func (fd FeatureDefinition) ReferenceCount() int {
+func (fd *FeatureDefinition) ReferenceCount() int {
 	count := C.OGR_FD_GetReferenceCount(fd.cval)
 	return int(count)
 }
@@ -424,23 +428,29 @@ type DataSource struct {
 }
 
 // Open a file / data source with one of the registered drivers
-func OpenDataSource(name string, update int) DataSource {
+func OpenDataSource(name string, update int) *DataSource {
 	cName := C.CString(name)
 	defer C.free(unsafe.Pointer(cName))
 	ds := C.OGROpen(cName, C.int(update), nil)
-	return DataSource{ds}
+	if ds == nil {
+		return nil
+	}
+	return &DataSource{ds}
 }
 
 // Open a shared file / data source with one of the registered drivers
-func OpenSharedDataSource(name string, update int) DataSource {
+func OpenSharedDataSource(name string, update int) *DataSource {
 	cName := C.CString(name)
 	defer C.free(unsafe.Pointer(cName))
 	ds := C.OGROpenShared(cName, C.int(update), nil)
-	return DataSource{ds}
+	if ds == nil {
+		return nil
+	}
+	return &DataSource{ds}
 }
 
 // Drop a reference to this datasource and destroy if reference is zero
-func (ds DataSource) Release() error {
+func (ds *DataSource) Release() error {
 	return C.OGRReleaseDataSource(ds.cval).Err()
 }
 
@@ -451,30 +461,33 @@ func OpenDataSourceCount() int {
 }
 
 // Return the i'th datasource opened
-func OpenDataSourceByIndex(index int) DataSource {
+func OpenDataSourceByIndex(index int) *DataSource {
 	ds := C.OGRGetOpenDS(C.int(index))
-	return DataSource{ds}
+	if ds == nil {
+		return nil
+	}
+	return &DataSource{ds}
 }
 
 // Closes datasource and releases resources
-func (ds DataSource) Destroy() {
+func (ds *DataSource) Destroy() {
 	C.OGR_DS_Destroy(ds.cval)
 }
 
 // Fetch the name of the data source
-func (ds DataSource) Name() string {
+func (ds *DataSource) Name() string {
 	name := C.OGR_DS_GetName(ds.cval)
 	return C.GoString(name)
 }
 
 // Fetch the number of layers in this data source
-func (ds DataSource) LayerCount() int {
+func (ds *DataSource) LayerCount() int {
 	count := C.OGR_DS_GetLayerCount(ds.cval)
 	return int(count)
 }
 
 // Fetch a layer of this data source by index
-func (ds DataSource) LayerByIndex(index int) *Layer {
+func (ds *DataSource) LayerByIndex(index int) *Layer {
 	layer := C.OGR_DS_GetLayer(ds.cval, C.int(index))
 	if layer == nil {
 		return nil
@@ -483,7 +496,7 @@ func (ds DataSource) LayerByIndex(index int) *Layer {
 }
 
 // Fetch a layer of this data source by name
-func (ds DataSource) LayerByName(name string) *Layer {
+func (ds *DataSource) LayerByName(name string) *Layer {
 	cString := C.CString(name)
 	defer C.free(unsafe.Pointer(cString))
 	layer := C.OGR_DS_GetLayerByName(ds.cval, cString)
@@ -494,23 +507,26 @@ func (ds DataSource) LayerByName(name string) *Layer {
 }
 
 // Delete the layer from the data source
-func (ds DataSource) Delete(index int) error {
+func (ds *DataSource) Delete(index int) error {
 	return C.OGR_DS_DeleteLayer(ds.cval, C.int(index)).Err()
 }
 
 // Fetch the driver that the data source was opened with
-func (ds DataSource) Driver() OGRDriver {
+func (ds *DataSource) Driver() *OGRDriver {
 	driver := C.OGR_DS_GetDriver(ds.cval)
-	return OGRDriver{driver}
+	if driver == nil {
+		return nil
+	}
+	return &OGRDriver{driver}
 }
 
 // Create a new layer on the data source
-func (ds DataSource) CreateLayer(
+func (ds *DataSource) CreateLayer(
 	name string,
 	sr SpatialReference,
 	geomType GeometryType,
 	options []string,
-) Layer {
+) *Layer {
 	cName := C.CString(name)
 	defer C.free(unsafe.Pointer(cName))
 
@@ -529,15 +545,18 @@ func (ds DataSource) CreateLayer(
 		C.OGRwkbGeometryType(geomType),
 		(**C.char)(unsafe.Pointer(&opts[0])),
 	)
-	return Layer{layer}
+	if layer == nil {
+		return nil
+	}
+	return &Layer{layer}
 }
 
 // Duplicate an existing layer
-func (ds DataSource) CopyLayer(
+func (ds *DataSource) CopyLayer(
 	source Layer,
 	name string,
 	options []string,
-) Layer {
+) *Layer {
 	cName := C.CString(name)
 	defer C.free(unsafe.Pointer(cName))
 
@@ -555,11 +574,14 @@ func (ds DataSource) CopyLayer(
 		cName,
 		(**C.char)(unsafe.Pointer(&opts[0])),
 	)
-	return Layer{layer}
+	if layer == nil {
+		return nil
+	}
+	return &Layer{layer}
 }
 
 // Test if the data source has the indicated capability
-func (ds DataSource) TestCapability(capability string) bool {
+func (ds *DataSource) TestCapability(capability string) bool {
 	cString := C.CString(capability)
 	defer C.free(unsafe.Pointer(cString))
 	val := C.OGR_DS_TestCapability(ds.cval, cString)
@@ -567,23 +589,26 @@ func (ds DataSource) TestCapability(capability string) bool {
 }
 
 // Execute an SQL statement against the data source
-func (ds DataSource) ExecuteSQL(sql string, filter Geometry, dialect string) Layer {
+func (ds *DataSource) ExecuteSQL(sql string, filter Geometry, dialect string) *Layer {
 	cSQL := C.CString(sql)
 	defer C.free(unsafe.Pointer(cSQL))
 	cDialect := C.CString(dialect)
 	defer C.free(unsafe.Pointer(cDialect))
 
 	layer := C.OGR_DS_ExecuteSQL(ds.cval, cSQL, filter.cval, cDialect)
-	return Layer{layer}
+	if layer == nil {
+		return nil
+	}
+	return &Layer{layer}
 }
 
 // Release the results of ExecuteSQL
-func (ds DataSource) ReleaseResultSet(layer Layer) {
+func (ds *DataSource) ReleaseResultSet(layer *Layer) {
 	C.OGR_DS_ReleaseResultSet(ds.cval, layer.cval)
 }
 
 // Flush pending changes to the data source
-func (ds DataSource) Sync() error {
+func (ds *DataSource) Sync() error {
 	return C.OGR_DS_SyncToDisk(ds.cval).Err()
 }
 
@@ -596,21 +621,24 @@ type OGRDriver struct {
 }
 
 // Fetch name of driver (file format)
-func (driver OGRDriver) Name() string {
+func (driver *OGRDriver) Name() string {
 	name := C.OGR_Dr_GetName(driver.cval)
 	return C.GoString(name)
 }
 
 // Attempt to open file with this driver
-func (driver OGRDriver) Open(filename string, update int) (newDS DataSource, ok bool) {
+func (driver *OGRDriver) Open(filename string, update int) (newDS *DataSource, ok bool) {
 	cFilename := C.CString(filename)
 	defer C.free(unsafe.Pointer(cFilename))
 	ds := C.OGR_Dr_Open(driver.cval, cFilename, C.int(update))
-	return DataSource{ds}, ds != nil
+	if ds == nil {
+		return nil, false
+	}
+	return &DataSource{ds}, true
 }
 
 // Test if this driver supports the named capability
-func (driver OGRDriver) TestCapability(capability string) bool {
+func (driver *OGRDriver) TestCapability(capability string) bool {
 	cString := C.CString(capability)
 	defer C.free(unsafe.Pointer(cString))
 	val := C.OGR_Dr_TestCapability(driver.cval, cString)
@@ -618,10 +646,9 @@ func (driver OGRDriver) TestCapability(capability string) bool {
 }
 
 // Create a new data source based on this driver
-func (driver OGRDriver) Create(name string, options []string) (newDS DataSource, ok bool) {
+func (driver *OGRDriver) Create(name string, options []string) (newDS *DataSource, ok bool) {
 	cName := C.CString(name)
 	defer C.free(unsafe.Pointer(cName))
-
 	length := len(options)
 	opts := make([]*C.char, length+1)
 	for i := 0; i < length; i++ {
@@ -629,13 +656,15 @@ func (driver OGRDriver) Create(name string, options []string) (newDS DataSource,
 		defer C.free(unsafe.Pointer(opts[i]))
 	}
 	opts[length] = (*C.char)(unsafe.Pointer(nil))
-
 	ds := C.OGR_Dr_CreateDataSource(driver.cval, cName, (**C.char)(unsafe.Pointer(&opts[0])))
-	return DataSource{ds}, ds != nil
+	if ds == nil {
+		return nil, false
+	}
+	return &DataSource{ds}, true
 }
 
 // Create a new datasource with this driver by copying all layers of the existing datasource
-func (driver OGRDriver) Copy(source DataSource, name string, options []string) (newDS DataSource, ok bool) {
+func (driver *OGRDriver) Copy(source DataSource, name string, options []string) (newDS *DataSource, ok bool) {
 	cName := C.CString(name)
 	defer C.free(unsafe.Pointer(cName))
 
@@ -648,23 +677,26 @@ func (driver OGRDriver) Copy(source DataSource, name string, options []string) (
 	opts[length] = (*C.char)(unsafe.Pointer(nil))
 
 	ds := C.OGR_Dr_CopyDataSource(driver.cval, source.cval, cName, (**C.char)(unsafe.Pointer(&opts[0])))
-	return DataSource{ds}, ds != nil
+	if ds == nil {
+		return nil, false
+	}
+	return &DataSource{ds}, true
 }
 
 // Delete a data source
-func (driver OGRDriver) Delete(filename string) error {
+func (driver *OGRDriver) Delete(filename string) error {
 	cFilename := C.CString(filename)
 	defer C.free(unsafe.Pointer(cFilename))
 	return C.OGR_Dr_DeleteDataSource(driver.cval, cFilename).Err()
 }
 
 // Add a driver to the list of registered drivers
-func (driver OGRDriver) Register() {
+func (driver *OGRDriver) Register() {
 	C.OGRRegisterDriver(driver.cval)
 }
 
 // Remove a driver from the list of registered drivers
-func (driver OGRDriver) Deregister() {
+func (driver *OGRDriver) Deregister() {
 	C.OGRDeregisterDriver(driver.cval)
 }
 
@@ -675,15 +707,21 @@ func OGRDriverCount() int {
 }
 
 // Fetch the indicated driver by index
-func OGRDriverByIndex(index int) OGRDriver {
+func OGRDriverByIndex(index int) *OGRDriver {
 	driver := C.OGRGetDriver(C.int(index))
-	return OGRDriver{driver}
+	if driver == nil {
+		return nil
+	}
+	return &OGRDriver{driver}
 }
 
 // Fetch the indicated driver by name
-func OGRDriverByName(name string) OGRDriver {
+func OGRDriverByName(name string) *OGRDriver {
 	cName := C.CString(name)
 	defer C.free(unsafe.Pointer(cName))
 	driver := C.OGRGetDriverByName(cName)
-	return OGRDriver{driver}
+	if driver == nil {
+		return nil
+	}
+	return &OGRDriver{driver}
 }
