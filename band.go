@@ -343,7 +343,7 @@ func (band *RasterBand) FlushCache() {
 }
 
 // Compute raster histogram
-func (rb RasterBand) Histogram(
+func (rb *RasterBand) Histogram(
 	min, max float64,
 	buckets int,
 	includeOutOfRange, approxOK int,
@@ -375,7 +375,7 @@ func (rb RasterBand) Histogram(
 }
 
 // Fetch default raster histogram
-func (rb RasterBand) DefaultHistogram(
+func (rb *RasterBand) DefaultHistogram(
 	force int,
 	progress ProgressFunc,
 	data interface{},
