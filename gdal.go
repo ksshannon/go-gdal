@@ -349,12 +349,15 @@ func Open(filename string, access Access) (*Dataset, error) {
 }
 
 // Open a shared existing dataset
-func OpenShared(filename string, access Access) Dataset {
+func OpenShared(filename string, access Access) *Dataset {
 	cFilename := C.CString(filename)
 	defer C.free(unsafe.Pointer(cFilename))
 
 	dataset := C.GDALOpenShared(cFilename, C.GDALAccess(access))
-	return Dataset{dataset}
+	if dataset == nil {
+		return nil
+	}
+	return &Dataset{dataset}
 }
 
 // TODO(kyle): deprecate Open(), rename OpenEx->Open
@@ -839,8 +842,8 @@ func (dataset *Dataset) CreateMaskBand(flags int) error {
 }
 
 // Copy all dataset raster data
-func (sourceDataset Dataset) CopyWholeRaster(
-	destDataset Dataset,
+func (sourceDataset *Dataset) CopyWholeRaster(
+	destDataset *Dataset,
 	options []string,
 	progress ProgressFunc,
 	data interface{},
@@ -865,7 +868,7 @@ func (sourceDataset Dataset) CopyWholeRaster(
 }
 
 // LayerCount gets the number of layers in this dataset.
-func (ds Dataset) LayerCount() int {
+func (ds *Dataset) LayerCount() int {
 	return int(C.GDALDatasetGetLayerCount(ds.cval))
 }
 
@@ -875,12 +878,12 @@ func (ds Dataset) LayerCount() int {
 // by the application.
 //
 // This function is the same as the C++ method GDALDataset::GetLayer()
-func (ds Dataset) Layer(layer int) (Layer, error) {
+func (ds *Dataset) Layer(layer int) (*Layer, error) {
 	lyr := C.GDALDatasetGetLayer(ds.cval, C.int(layer))
 	if lyr == nil {
-		return Layer{lyr}, fmt.Errorf("failed to get layer")
+		return nil, fmt.Errorf("failed to get layer")
 	}
-	return Layer{lyr}, nil
+	return &Layer{lyr}, nil
 }
 
 // LayerByName fetches a layer by name.
@@ -889,7 +892,7 @@ func (ds Dataset) Layer(layer int) (Layer, error) {
 // by the application.
 //
 // This function is the same as the C++ method GDALDataset::GetLayerByName()
-func (ds Dataset) LayerByName(name string) (*Layer, error) {
+func (ds *Dataset) LayerByName(name string) (*Layer, error) {
 	cName := C.CString(name)
 	lyr := C.GDALDatasetGetLayerByName(ds.cval, cName)
 	if lyr == nil {
@@ -911,7 +914,7 @@ func (ds Dataset) LayerByName(name string) (*Layer, error) {
 // For more information on the SQL dialect supported internally by OGR review
 // the OGR SQL document. Some drivers (i.e. Oracle and PostGIS) pass the SQL
 // directly through to the underlying RDBMS.
-func (ds Dataset) ExecuteSQL(sql string, spatialFilter Geometry, dialect string) (*Layer, error) {
+func (ds *Dataset) ExecuteSQL(sql string, spatialFilter Geometry, dialect string) (*Layer, error) {
 	cSQL := C.CString(sql)
 	var cDialect *C.char
 	if dialect == "" {

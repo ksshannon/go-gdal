@@ -12,7 +12,7 @@ func getLayer(t *testing.T) *Layer {
 	if err != nil {
 		t.Fatal(err)
 	}
-	return &lyr
+	return lyr
 }
 
 func TestLayerName(t *testing.T) {
