@@ -44,7 +44,7 @@ type Geometry struct {
 
 //Create a geometry object from its well known binary representation
 func CreateFromWKB(wkb []uint8, srs *SpatialReference, bytes int) (*Geometry, error) {
-	buf := unsafe.Pointer(&wkb[0])
+	buf := (*C.uchar)(unsafe.Pointer(&wkb[0]))
 	var newGeom *Geometry
 	return newGeom, C.OGR_G_CreateFromWkb(
 		buf, srs.cval, &newGeom.cval, C.int(bytes),
@@ -182,7 +182,7 @@ func (geom *Geometry) Envelope() Envelope {
 
 // Assign a geometry from well known binary data
 func (geom *Geometry) FromWKB(wkb []uint8, bytes int) error {
-	buf := unsafe.Pointer(&wkb[0])
+	buf := (*C.uchar)(unsafe.Pointer(&wkb[0]))
 	return C.OGR_G_ImportFromWkb(geom.cval, buf, C.int(bytes)).Err()
 }
 
