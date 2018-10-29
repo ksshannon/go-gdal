@@ -894,6 +894,7 @@ func (ds *Dataset) Layer(layer int) (*Layer, error) {
 // This function is the same as the C++ method GDALDataset::GetLayerByName()
 func (ds *Dataset) LayerByName(name string) (*Layer, error) {
 	cName := C.CString(name)
+	defer C.free(unsafe.Pointer(cName))
 	lyr := C.GDALDatasetGetLayerByName(ds.cval, cName)
 	if lyr == nil {
 		return nil, fmt.Errorf("failed to get layer")
@@ -916,11 +917,13 @@ func (ds *Dataset) LayerByName(name string) (*Layer, error) {
 // directly through to the underlying RDBMS.
 func (ds *Dataset) ExecuteSQL(sql string, spatialFilter Geometry, dialect string) (*Layer, error) {
 	cSQL := C.CString(sql)
+	defer C.free(unsafe.Pointer(cSQL))
 	var cDialect *C.char
 	if dialect == "" {
 		cDialect = nil
 	} else {
 		cDialect = C.CString(dialect)
+		defer C.free(unsafe.Pointer(cDialect))
 	}
 	lyr := C.GDALDatasetExecuteSQL(ds.cval, cSQL, spatialFilter.cval, cDialect)
 	if lyr == nil {

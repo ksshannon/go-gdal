@@ -7,6 +7,7 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"flag"
 	"fmt"
 	"go/ast"
 	"go/parser"
@@ -99,8 +100,10 @@ func variants(f string) []string {
 }
 
 func main() {
+	libFlag := flag.String("l", "/usr/local/lib/libgdal.so", "path to gdal so")
+	flag.Parse()
 	var buf bytes.Buffer
-	cmd := exec.Command("nm", "-D", "-C", "-g", "/usr/local/lib/libgdal.so")
+	cmd := exec.Command("nm", "-D", "-C", "-g", *libFlag)
 	cmd.Stdout = &buf
 	cmd.Run()
 
