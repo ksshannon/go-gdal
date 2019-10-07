@@ -529,7 +529,7 @@ func (band *RasterBand) MetadataItem(name, domain string) string {
 	defer C.free(unsafe.Pointer(cDomain))
 
 	md := C.GDALGetMetadataItem(C.GDALMajorObjectH(band.cval), cName, cDomain)
-	if md != nil {
+	if md == nil {
 		return ""
 	}
 	return C.GoString(md)
