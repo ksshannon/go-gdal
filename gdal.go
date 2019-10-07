@@ -504,6 +504,19 @@ func (object *RasterBand) SetMetadataItem(name, value, domain string) error {
 	).Err()
 }
 
+func (band *RasterBand) MetadataItem(name, domain string) string {
+	cName := C.CString(name)
+	defer C.free(unsafe.Pointer(cName))
+	cDomain := C.CString(domain)
+	defer C.free(unsafe.Pointer(cDomain))
+
+	md := C.GDALGetMetadataItem(C.GDALMajorObjectH(band.cval), cName, cDomain)
+	if md != nil {
+		return ""
+	}
+	return C.GoString(md)
+}
+
 // TODO: Make korrekt class hirerarchy via interfaces
 
 func (object *Dataset) SetMetadataItem(name, value, domain string) error {
