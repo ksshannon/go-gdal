@@ -1,5 +1,8 @@
 image: alpine/edge
 
+secrets:
+   - 8d18bad4-7933-4c03-be86-3c18676f11d6
+
 packages:
   - g++
   - gcc
@@ -15,3 +18,9 @@ tasks:
 - test: |
     cd go-gdal
     go test -v
+- mirror: |
+    ssh-keyscan github.com >> ~/.ssh/known_hosts
+    git clone https://git.sr.ht/~ksshannon/go-gdal mirror
+    cd mirror
+    git remote add bsu git@github.com:ksshannon/go-gdal
+    git push bsu
