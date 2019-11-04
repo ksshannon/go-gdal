@@ -1,3 +1,3 @@
-module github.com/ksshannon/go-gdal
+module git.sr.ht/~ksshannon/go-gdal
 
 go 1.12
