@@ -1,0 +1,17 @@
+image: alpine/edge
+
+packages:
+  - g++
+  - gcc
+  - go
+  - gdal-dev
+  - musl-dev
+  - linux-headers-dev
+
+tasks:
+- build: |
+  cd go-gdal
+  go build
+- test: |
+  cd go-gdal
+  go test -v
