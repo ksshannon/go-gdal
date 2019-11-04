@@ -6,7 +6,7 @@ packages:
   - go
   - gdal-dev
   - musl-dev
-  - linux-headers-dev
+  - linux-headers
 
 tasks:
 - build: |
