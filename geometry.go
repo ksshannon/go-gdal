@@ -47,7 +47,7 @@ func CreateFromWKB(wkb []uint8, srs *SpatialReference, bytes int) (*Geometry, er
 	cString := (*C.uchar)(unsafe.Pointer(&wkb[0]))
 	var newGeom *Geometry
 	return newGeom, C.OGR_G_CreateFromWkb(
-		cString, unsafe.Pointer(srs.cval), &newGeom.cval, C.int(bytes),
+		unsafe.Pointer(cString), srs.cval, &newGeom.cval, C.int(bytes),
 	).Err()
 }
 
