@@ -10,8 +10,8 @@ packages:
 
 tasks:
 - build: |
-  cd go-gdal
-  go build
+    cd go-gdal
+    go build
 - test: |
-  cd go-gdal
-  go test -v
+    cd go-gdal
+    go test -v
